@@ -11,6 +11,18 @@ var commandDefinitions = []*discordgo.ApplicationCommand{
 		Name:        "ping",
 		Description: "greg",
 	},
+	{
+		Name:        "repeat",
+		Description: "repeats message",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message",
+				Description: "e",
+				Required:    true,
+			},
+		},
+	},
 }
 var registeredCommands []*discordgo.ApplicationCommand
 func main() {
@@ -21,7 +33,7 @@ func main() {
 	}
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("error creating discord session:", err)
+		fmt.Println("error creating Discord session:", err)
 		return
 	}
 	dg.AddHandlerOnce(ready)
@@ -61,11 +73,25 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case "ping":
 		userID := i.Member.User.ID
 		response := fmt.Sprintf("hai, <@%s>!", userID)
-
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: response,
+			},
+		})
+	case "repeat":
+		msg := ""
+		for _, opt := range i.ApplicationCommandData().Options {
+			if opt.Name == "message" {
+				msg = opt.StringValue()
+				break
+			}
+		}
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content:         msg,
+				AllowedMentions: &discordgo.MessageAllowedMentions{},
 			},
 		})
 	}
